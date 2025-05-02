@@ -1,4 +1,31 @@
 services:
+  zero:
+    container_name: zerodotemail-zero
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 3000:3000
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - valkey
+      - upstash-proxy
+    environment:
+      - NODE_ENV=production
+      - REDIS_TOKEN=upstash-local-token
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=zerodotemail
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/zerodotemail
+      - BETTER_AUTH_SECRET=my-better-auth-secret
+      - BETTER_AUTH_URL=http://localhost:3000
+      - BETTER_AUTH_TRUSTED_ORIGINS=http://localhost:3000
+      - REDIS_URL=http://localhost:8079
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
   db:
     container_name: zerodotemail-db
     image: postgres:17
@@ -29,7 +56,7 @@ services:
     image: hiett/serverless-redis-http:latest
     environment:
       SRH_MODE: env
-      SRH_TOKEN: ${REDIS_TOKEN}
+      SRH_TOKEN: upstash-local-token
       SRH_CONNECTION_STRING: 'redis://valkey:6379'
     ports:
       - 8079:80
